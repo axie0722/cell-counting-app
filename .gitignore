@@ -1,0 +1,23 @@
+# The app builds its own private Python environment in here the first time it starts: about 1.5 GB of
+# torch, napari and Qt, compiled for one operating system. The launcher rebuilds it in minutes on any
+# machine, and it is not portable between machines even in principle, so it must never be committed.
+.venv/
+__pycache__/
+*.pyc
+
+# macOS writes one of these into every folder it displays.
+.DS_Store
+
+# A SAFETY NET, NOT A NECESSITY. Nothing in this package is an image or a result, and package_app.py
+# never copies one -- it ships the program and the model, and the data stays on the machine it was
+# collected on. But this folder is a working copy of an app that reads sections and writes its counts
+# beside them, so if a TIF or a "counted cells.csv" is ever dropped in here to try something out,
+# these lines are what stop it being published. Unpublished data is the one mistake a repository
+# cannot take back: GitHub and third parties cache and index what they have seen, so "I deleted it"
+# does not undo it.
+*.TIF
+*.tif
+*.tiff
+*.csv
+*.npz
+*.xlsx

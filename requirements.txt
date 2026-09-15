@@ -1,0 +1,49 @@
+# What the app needs installed. Built from what the code actually imports:
+#
+#   python package_app.py --imports
+#
+# which follows every import from app.py and prints the version installed here. So this list is
+# checked against the code rather than remembered -- package_app.py refuses to build a package if
+# the app imports something that is not pinned below.
+#
+# EXACT VERSIONS (==), not minimums. These eleven packages are the ones this app was measured with;
+# a minimum would let pip install next year's numpy on someone else's computer and turn "the counts
+# are wrong" into a question nobody can answer. Everything these depend on in turn is left to pip,
+# because those versions are not ours to have an opinion about.
+#
+# PYTHON 3.11, 3.12 OR 3.13. Written and run on 3.12.4. Torch has no wheels for the newest Python
+# for a few months after it appears, so "the latest Python" is usually the wrong answer here; the
+# launchers look for a version in this range and say so if they cannot find one.
+
+# The window and the drawing tool.
+napari==0.8.0
+PyQt6==6.10.2
+# napari and the app both talk to Qt through qtpy, which is a thin layer over whichever binding is
+# installed -- so PyQt6 above is what actually draws, and this is what the code imports.
+QtPy==2.4.3
+
+# The detector.
+torch==2.11.0
+torchvision==0.26.0
+# ON LINUX, pip's default torch wheel is the CUDA one: about 2.5 GB, and useless without an NVIDIA
+# card. Counting here is memory-bound rather than compute-bound, so the CPU wheel is what you want:
+#   pip install --index-url https://download.pytorch.org/whl/cpu torch==2.11.0 torchvision==0.26.0
+# macOS and Windows already default to a CPU build. See INSTALL.md.
+
+# Arrays, tables, and the image maths.
+numpy==2.4.6
+pandas==3.0.3
+scipy==1.18.0
+scikit-image==0.26.0
+pillow==12.3.0
+
+# Reading the sections. imagecodecs is not imported by name anywhere: tifffile loads it when a TIF
+# turns out to be compressed, and without it those sections fail to open with a message about a
+# missing codec. Every section from this microscope is LZW-compressed, so it is not optional.
+tifffile==2026.7.14
+imagecodecs==2026.6.26
+
+# Looking at processes: which sections are already being counted (app_running.py), and holding a
+# count still while a drawing window is open (app_pause.py). Both used to be done by running `ps`
+# and sending SIGSTOP, which is why the app was Mac-only.
+psutil==7.2.2
