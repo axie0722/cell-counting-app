@@ -2,7 +2,7 @@
 # Start the cell counting app on macOS or Linux.
 #
 # WHAT THIS IS FOR. The app is Python, and Python programs do not start by being double-clicked:
-# they need an interpreter with eleven packages installed, and that is a paragraph of terminal
+# they need an interpreter with thirteen packages installed, and that is a paragraph of terminal
 # commands nobody should have to follow to look at a bird brain. So this file does it: finds a
 # Python, builds the app its own environment the first time it runs, and starts the window. After
 # the first run it takes about a second.
@@ -12,8 +12,9 @@
 # the first time you open something you downloaded.
 #
 # IT IS SAFE TO RUN AGAIN AT ANY TIME. Every step below asks whether it is already done, so a run
-# that was interrupted halfway through the download -- which takes twenty minutes, so it happens --
-# is fixed by starting it again rather than by starting over.
+# that was interrupted halfway through the download -- which is a gigabyte, so it happens -- is
+# fixed by starting it again rather than by starting over. What was already fetched is not fetched
+# twice: pip and uv both keep a cache in the home folder.
 
 set -u
 
@@ -25,6 +26,11 @@ cd "$(dirname "$0")" || exit 1
 
 VENV=".venv"
 PYTHON="$VENV/bin/python"
+
+# WHICH INSTALLER DOES THE WORK. Empty until the setup below decides: "" means pip, "module" means a
+# uv that was just fetched into the environment, and anything else is the path to a uv already on
+# this computer. Declared here because `set -u` makes reading an unset variable an error.
+UV=""
 
 # CHECKED WITHOUT IMPORTING THEM. importlib.util.find_spec asks "is this installed" by looking on
 # disk; actually importing torch and napari takes eight seconds and would be paid on every start.
@@ -77,6 +83,64 @@ raise SystemExit(0 if all(importlib.util.find_spec(n) for n in sys.argv[1:]) els
         $NEEDED >/dev/null 2>&1
 }
 
+# THE ONE PLACE THAT KNOWS HOW TO INSTALL, because it is called twice: once for torch from the CPU
+# index on Linux, and once for requirements.txt.
+#
+# PREBUILT PACKAGES FIRST, SOURCE ONLY IF IT MUST. --only-binary says "download something already
+# built, or fail" -- and failing in ten seconds is the kind thing to do, because a package that has
+# to be compiled here can spend twenty minutes at it and then stop on a missing C compiler, which is
+# not a thing to ask of somebody who wanted to count cells. It is an attempt, though, not a rule: if
+# some dependency on some system genuinely ships only source, the second try lets it through rather
+# than refusing to install an app that would have worked.
+install_packages() {
+    case "$UV" in
+        "")     "$PYTHON" -m pip install --only-binary :all: "$@" && return 0 ;;
+        module) "$PYTHON" -m uv pip install --python "$PYTHON" --only-binary :all: "$@" && return 0 ;;
+        *)      "$UV" pip install --python "$PYTHON" --only-binary :all: "$@" && return 0 ;;
+    esac
+
+    say ""
+    say "  something here has no prebuilt version -- trying again the slow way, which may take a while"
+
+    case "$UV" in
+        "")     "$PYTHON" -m pip install "$@" ;;
+        module) "$PYTHON" -m uv pip install --python "$PYTHON" "$@" ;;
+        *)      "$UV" pip install --python "$PYTHON" "$@" ;;
+    esac
+}
+
+# uv IF IT CAN BE HAD, pip OTHERWISE. Both install the same pinned versions from requirements.txt;
+# uv is that job with the waiting taken out. It fetches the packages in parallel instead of one after
+# another, resolves the versions in seconds rather than minutes, and hard-links them out of a cache in
+# the home folder instead of unpacking and byte-compiling every file. Measured on this machine with
+# an empty cache, the same 1 GB over the same connection: uv 89 seconds against pip's 174.
+#
+# FETCHED WITH pip WHEN IT IS ABSENT -- one small wheel and a few seconds, paid back several times
+# over. Deliberately NOT `curl ... | sh`, which is how uv's own site installs it: that asks somebody
+# to run a script off the internet on the say-so of a program they were emailed, and the wheel on
+# PyPI is the same tool arriving through a channel they already use.
+#
+# AND IF ANY OF THAT FAILS, pip does the work. uv is a speed-up, never a requirement: a pip too old
+# to install it, a machine with no route to it, an unfamiliar platform -- all end in the same place,
+# a working app, just later.
+choose_installer() {
+    if command -v uv >/dev/null 2>&1; then
+        UV="$(command -v uv)"
+        say "  using uv, which is already installed here"
+
+        return 0
+    fi
+
+    "$PYTHON" -m pip install --upgrade pip >/dev/null 2>&1
+
+    if "$PYTHON" -m pip install --quiet uv >/dev/null 2>&1; then
+        UV="module"
+        say "  fetched uv, a faster installer, to do it with"
+    else
+        say "  using pip (uv was not available here -- this works, it is only slower)"
+    fi
+}
+
 if ! "$PYTHON" -c 'raise SystemExit(0)' >/dev/null 2>&1; then
     found="$(find_python)" || stop "\
 This computer has no Python 3.11, 3.12 or 3.13, which the app needs.
@@ -103,26 +167,27 @@ fi
 
 if ! ready; then
     say ""
-    say "Installing what the app needs. THE FIRST TIME THIS TAKES 10-20 MINUTES and downloads"
-    say "about 1 GB, mostly the detector's maths library. It only happens once."
+    say "Installing what the app needs: about 1 GB, mostly the detector's maths library."
+    say "THIS HAPPENS ONCE. A few minutes on a fast connection, longer on a slow one -- most of it"
+    say "is the download, so it goes at the speed of your internet."
     say ""
 
-    "$PYTHON" -m pip install --upgrade pip >/dev/null 2>&1
+    choose_installer
 
-    # ON LINUX, TORCH FIRST, FROM THE CPU INDEX. pip's default torch wheel for Linux is the NVIDIA
+    # ON LINUX, TORCH FIRST, FROM THE CPU INDEX. The default torch wheel for Linux is the NVIDIA
     # one: 2.5 GB, and useless without that card. Counting is memory-bound rather than
     # compute-bound here, so there is nothing to gain from it even on a machine that has one.
-    # Installed before requirements.txt so the pinned version is already satisfied when pip reads
-    # that file, and it does not fetch the big one afterwards.
+    # Installed before requirements.txt so the pinned version is already satisfied when the
+    # installer reads that file, and it does not fetch the big one afterwards.
     if [ "$(uname -s)" = "Linux" ]; then
         say "  Linux: fetching the CPU build of torch (the default one is a 2.5 GB NVIDIA build)"
-        "$PYTHON" -m pip install --index-url https://download.pytorch.org/whl/cpu \
+        install_packages --index-url https://download.pytorch.org/whl/cpu \
             torch==2.11.0 torchvision==0.26.0 || stop "\
 Could not install torch. If this says something about disk space, the download needs about 1 GB
 free; if it mentions a version, this computer's Python may be too new -- see the top of this file."
     fi
 
-    "$PYTHON" -m pip install -r requirements.txt || stop "\
+    install_packages -r requirements.txt || stop "\
 Could not install the packages the app needs. The message above says which one and why; the usual
 causes are no internet connection, or a Python version outside 3.11-3.13.
 

@@ -61,14 +61,19 @@ Open a terminal in the folder and run:
 bash count-cells.sh
 ```
 
-### The first run takes 10–20 minutes
+### The first run takes a few minutes
 
 It builds the app its own private Python environment inside the folder (a `.venv` directory) and
 downloads about 1 GB, most of which is PyTorch. Leave it alone until the window appears. **It only
 happens once** — after that, starting the app takes about a second.
 
+Almost all of that is the download, so it goes at the speed of your internet. Measured on a fast
+connection with nothing cached: **2 minutes** to install and half a minute for the window to appear
+the first time. On a slow connection, budget 15–20 minutes for the same gigabyte.
+
 If the download is interrupted, just start the launcher again. Every step checks whether it has
-already been done, so it picks up where it stopped rather than starting over.
+already been done, so it picks up where it stopped rather than starting over — and what was already
+fetched is not fetched twice.
 
 If something goes wrong, the window stays open with the reason in it. That message is the useful
 thing to send on.

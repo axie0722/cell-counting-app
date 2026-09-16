@@ -27,8 +27,10 @@ installed by hand.
 1. Download this repository (green **Code** button → **Download ZIP**) and unzip it, or clone it.
 2. Double-click **`Count cells.command`** on macOS, or **`Count cells.bat`** on Windows. On Linux,
    run `bash count-cells.sh`.
-3. The first start takes 10–20 minutes: it builds the app its own Python environment and downloads
-   about 1 GB, most of it PyTorch. After that, starting takes about a second.
+3. The first start builds the app its own Python environment and downloads about 1 GB, most of it
+   PyTorch. Measured on a fast connection with nothing cached: two minutes, plus half a minute for
+   the window to appear. On a slow connection, budget 15–20 minutes for the same gigabyte. **It
+   happens once** — after that, starting takes about a second.
 4. In the app, press **Choose folder** and point it at your sections.
 
 Your operating system will warn you that this is from an unidentified developer — that is about the
