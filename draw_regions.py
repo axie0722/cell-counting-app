@@ -84,6 +84,22 @@ import pandas as pd
 import ps6
 from draw_helpers import resolve_image
 
+# A SCRIPT, NOT A MODULE -- AND IT SAYS SO RATHER THAN PROVING IT. This file has no main() to hide
+# behind: everything below runs the moment it is read, which is what makes `python draw_regions.py`
+# work and also means `import draw_regions` opens a napari window and saves a regions file.
+#
+# THAT HAPPENED ON 2026-09-16. A check whose whole job was "do the app's modules import?" imported
+# this one, which opened Alice's first section and wrote its outlines back over hers. Nothing was
+# lost -- same 58 vertices, moved by 0.0002 px in a float round-trip -- but a check has no business
+# writing to her data, and the next such import might land on a section mid-edit. The guard costs
+# nothing and turns a silent write into a sentence.
+if __name__ != "__main__":
+    raise ImportError(
+        "draw_regions is a script, not a module: importing it opens a napari window and saves over "
+        'a section\'s outlines. Run it as `python draw_regions.py "<section>.TIF"`, or let the app '
+        "launch it (app_actions.draw_command), which is how the Draw outlines button works."
+    )
+
 # Anything starting with "--" is a switch, so an image fragment can still be given by name.
 switches = {argument for argument in sys.argv[1:] if argument.startswith("--")}
 arguments = [argument for argument in sys.argv[1:] if not argument.startswith("--")]
