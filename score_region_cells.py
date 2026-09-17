@@ -44,14 +44,19 @@ def to_canvas(points, pixel_size_um):
 
 def cells_for(image_path):
     """Cell coordinates for a section, preferring counted cells over hand annotations."""
-    counted = Path(f"{Path(image_path).stem} counted cells.csv")
+    # THROUGH ps6, NOT BY BARE STEM. Both of these used to be built as `f"{stem} ....csv"`
+    # with no folder, which only ever found a section whose image sits at the top level:
+    # for the twenty in birds/ the label is beside the image, so the file was reported
+    # absent and the section silently scored on nothing. Same names for a top-level
+    # section, more files found for the rest.
+    counted = Path(ps6.counts_path(image_path))
 
     if counted.exists():
         table = pd.read_csv(counted)
         if len(table):
             return table[["axis-0", "axis-1"]].to_numpy(float), "counted"
 
-    annotations = Path(f"{Path(image_path).stem} cell centers.csv")
+    annotations = Path(ps6.sidecar_path(image_path, " cell centers.csv"))
 
     if annotations.exists():
         table = pd.read_csv(annotations)

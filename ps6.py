@@ -90,7 +90,7 @@ BIRDS = [
         # it was skipped initially.
         "name": "Purp30",
         "image": "birds/Purp30_LH_1-1-8_NCM_Slide 1.TIF",
-        "annotations": "Purp30_LH_1-1-8_NCM_Slide 1 cell centers.csv",
+        "annotations": "birds/Purp30_LH_1-1-8_NCM_Slide 1 cell centers.csv",
         "region": None,
         "quality": "marginal",
     },
@@ -176,7 +176,7 @@ BIRDS = [
         # split, per the note above.
         "name": "Gre595",
         "image": "birds/Gre595_LH-1-1-10_Slide 1_TD_p00_0_A01f00d1.TIF",
-        "annotations": "Gre595_LH-1-1-10_Slide 1_TD_p00_0_A01f00d1 cell centers.csv",
+        "annotations": "birds/Gre595_LH-1-1-10_Slide 1_TD_p00_0_A01f00d1 cell centers.csv",
         "region": None,
         "quality": "good",
     },
@@ -1263,7 +1263,15 @@ def first_pass_path(annotation_path):
     if Path(annotation_path).name in ASSISTED_FROM_THE_START:
         return None
 
-    backup = Path(f"{Path(annotation_path).stem} backup.csv")
+    # BESIDE THE ANNOTATION, not in the working directory. This used to build a bare
+    # filename -- `f"{stem} backup.csv"` with no folder -- which is the old rule that
+    # `sidecar_path` exists to replace: it only found the backup while every cell
+    # centres file sat at the top level, and would silently return None (meaning "this
+    # section has no clean first pass") for any label file kept next to its image in a
+    # subfolder. Returning None there is the bad kind of wrong: nothing fails, the
+    # section just quietly stops contributing unassisted clicks to scoring.
+    annotation = Path(annotation_path)
+    backup = annotation.with_name(f"{annotation.stem} backup.csv")
     return str(backup) if backup.exists() else None
 
 
