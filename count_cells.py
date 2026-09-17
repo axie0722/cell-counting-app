@@ -54,6 +54,10 @@ import numpy as np
 import pandas as pd
 import torch
 
+# Put the app's own module folders (src/*) on sys.path so the bare imports below resolve.
+# Must run before the first of them. See _bootstrap.py for why the code is laid out this way.
+import _bootstrap  # noqa: F401  -- imported for its import-time side effect, not for a name
+
 import ps6
 from train_cnn import SmallCNN, pick_device, standardise_batch
 

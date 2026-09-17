@@ -148,6 +148,10 @@ from qtpy.QtWidgets import (
     QWidget,
 )
 
+# Put the app's own module folders (src/*) on sys.path so the bare imports below resolve.
+# Must run before the first of them. See _bootstrap.py for why the code is laid out this way.
+import _bootstrap  # noqa: F401  -- imported for its import-time side effect, not for a name
+
 import app_awake
 import app_folder
 import app_pause

@@ -53,8 +53,37 @@ section 5 of INSTALL.md.
 
 The program and the trained model. **No images, no counts, no outlines, no research data.**
 
+The code is laid out like this. You launch the app from the root; everything it imports lives under
+`src/`:
+
+```
+Count cells.command / .bat        the launchers you double-click (see the Quick start above)
+count-cells.sh                    what those launchers run: builds the environment, starts the app
+
+app.py                            the entry point — the window and everything it does
+count_cells.py                    the counting run, started as its own process per section
+draw_regions.py                   the napari window for outlining NCM and CMM
+show_counts.py                    the napari window for reviewing counted cells
+app_table.py                      the "View all data" table
+_bootstrap.py                     puts the src/ folders below on the import path (see the file)
+
+src/app/                          the window's own logic: the queue, jobs, pausing, export, state
+src/model/                        the detector — network definitions (train_*) and the ps6 wrapper
+src/regions/                      proposing and preparing the NCM/CMM outlines, plus region_constants.json
+src/boundaries/                   the geometry that finds the region borders (rule_*, band_*, scan_*, …)
+src/review/                       the review and diagnostic sheets (review_*)
+
+ps6_cnn_backbone.pt, ps6_cnn.pt   the trained detector
+```
+
+The five scripts at the root are the ones that start their own process — the app, and the four
+windows and jobs it launches. Everything else is a library one of them imports. `docs/code-map.md`
+walks through it in more detail.
+
 These files are generated, not edited here: the app is developed in a larger research folder, and
 `package_app.py` there computes which files it actually needs by following the imports out of
 `app.py`, then copies those and the model into this repository. Fixes belong upstream in that folder;
 a change made here is lost at the next rebuild. `README.md`, `.gitignore` and `LICENSE` are the
-exception — the rebuild leaves those alone.
+exception — the rebuild leaves those alone. **The `src/` grouping above is applied in this
+repository, not upstream: a rebuild flattens the files back into one folder, so the folders and
+`_bootstrap.py` are re-created here rather than inherited.**

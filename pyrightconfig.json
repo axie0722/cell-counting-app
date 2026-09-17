@@ -1,0 +1,12 @@
+{
+  "//": "The app puts these folders on sys.path at runtime (see _bootstrap.py). Telling the type",
+  "//2": "checker the same thing lets editors resolve the bare imports -- import ps6, from",
+  "//3": "app_state import ... -- instead of flagging every one of them as unresolved.",
+  "extraPaths": [
+    "src/app",
+    "src/model",
+    "src/regions",
+    "src/boundaries",
+    "src/review"
+  ]
+}
