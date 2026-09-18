@@ -142,27 +142,49 @@ choose_installer() {
 }
 
 if ! "$PYTHON" -c 'raise SystemExit(0)' >/dev/null 2>&1; then
-    found="$(find_python)" || stop "\
-This computer has no Python 3.11, 3.12 or 3.13, which the app needs.
-
-  macOS:  install it from https://www.python.org/downloads/ (any 3.12.x), then run this again.
-  Linux:  sudo apt install python3.12 python3.12-venv     (or your system's equivalent)
-
-Nothing else has to be installed by hand -- this script does the rest."
-
     say "Setting up the app's own Python environment. This happens once."
-    say "  using $found"
 
-    # NOT --clear, which would empty the folder first. If .venv is here and broken it might still be
-    # somebody's, and a launcher is not the right thing to be deleting folders. Building over it
-    # replaces what is missing; if that is not enough, the message below says what to do.
-    "$found" -m venv "$VENV" || stop "\
+    # TWO WAYS TO GET A PYTHON, in order of least surprise. A system Python in 3.11-3.13 is the
+    # ordinary case and needs nothing fetched, so it is tried first. Failing that, uv -- if it is
+    # already on this machine -- downloads a private Python of its own into its cache in the home
+    # folder and builds the environment from that. That second path is what lets a machine with uv
+    # but no suitable Python (common on Nix, and on anyone who installed uv before Python) get all
+    # the way to a running app from one command, with nothing to install by hand and no admin.
+    if found="$(find_python)"; then
+        say "  using $found"
+
+        # NOT --clear, which would empty the folder first. If .venv is here and broken it might still
+        # be somebody's, and a launcher is not the right thing to be deleting folders. Building over
+        # it replaces what is missing; if that is not enough, the message below says what to do.
+        "$found" -m venv "$VENV" || stop "\
 Could not create the environment in $VENV.
 
 On Debian and Ubuntu this usually means the venv module is packaged separately:
   sudo apt install python3-venv
 
 If $VENV already exists and is broken, delete that folder and run this again."
+    elif command -v uv >/dev/null 2>&1; then
+        say "  no system Python 3.11-3.13 found -- using uv to fetch a private one"
+
+        # uv venv --python 3.12 downloads a standalone CPython into uv's own cache and builds .venv
+        # from it: not onto the system, not needing admin. Pinned to 3.12 for the same reason
+        # find_python avoids the newest -- torch has wheels for it. The package install below finds
+        # this same uv on PATH and reuses it, so nothing here is duplicated.
+        uv venv --python 3.12 "$VENV" || stop "\
+uv is installed but could not build the environment in $VENV. The message above says why; the usual
+cause is no network route to uv's Python download.
+
+If $VENV already exists and is broken, delete that folder and run this again."
+    else
+        stop "\
+This computer has no Python 3.11, 3.12 or 3.13, which the app needs, and no uv to fetch one with.
+Install EITHER one and run this again -- either is enough, and this script does the rest:
+
+  Python:  macOS  https://www.python.org/downloads/  (any 3.12.x)
+           Linux  sudo apt install python3.12 python3.12-venv   (or your system's equivalent)
+
+  uv:      https://docs.astral.sh/uv/   -- it fetches its own Python and needs no admin."
+    fi
 fi
 
 if ! ready; then

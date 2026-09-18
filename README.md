@@ -20,13 +20,24 @@ Ask before redistributing it.
 
 ## Quick start
 
-You need **Python 3.11, 3.12 or 3.13** installed — not the newest version, because PyTorch has no
-downloads ready for a brand new Python for some months after it appears. Nothing else has to be
-installed by hand.
+**One command sets everything up.** You need **one** of these on the machine first — either is
+enough, and the launcher does the rest:
+
+* **Python 3.11, 3.12 or 3.13** — not the newest version, because PyTorch has no downloads ready for
+  a brand new Python for some months after it appears; or
+* **[uv](https://docs.astral.sh/uv/)** — if you have uv but no suitable Python, the launcher uses it
+  to fetch a private Python of its own. This is the zero-Python path, and it needs no admin.
+
+Everything the app installs — a private Python if uv fetches one, and about 1 GB of packages — lands
+**inside this folder** (`.venv`) or in uv's own cache in your home folder. Nothing is installed onto
+the system, and deleting the folder removes it all.
 
 1. Download this repository (green **Code** button → **Download ZIP**) and unzip it, or clone it.
-2. Double-click **`Count cells.command`** on macOS, or **`Count cells.bat`** on Windows. On Linux,
-   run `bash count-cells.sh`.
+2. Start the launcher — that single step installs and runs everything:
+   * **macOS:** double-click **`Count cells.command`** (or, in a terminal in the folder,
+     `./"Count cells.command"`).
+   * **Windows:** double-click **`Count cells.bat`**.
+   * **Linux:** `bash count-cells.sh`.
 3. The first start builds the app its own Python environment and downloads about 1 GB, most of it
    PyTorch. Measured on a fast connection with nothing cached: two minutes, plus half a minute for
    the window to appear. On a slow connection, budget 15–20 minutes for the same gigabyte. **It
