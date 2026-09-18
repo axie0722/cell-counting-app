@@ -12,12 +12,14 @@ about the licence on the detector, the other is about what the counts are and ar
 ## 1. What you need
 
 * **A Mac, a Windows PC or a Linux machine.** Any of the three.
-* **Python 3.11, 3.12 or 3.13.** Not the very newest version — see below.
+* **Either Python 3.11, 3.12 or 3.13, or [uv](https://docs.astral.sh/uv/).** One of the two — see
+  below. Not the very newest Python.
 * **About 3 GB of free disk space**, and an internet connection for the first run.
 * **8 GB of memory or more.** A single section is a 40-megapixel image and counting one holds
   about 2 GB.
 
-You do **not** need to install anything except Python. The launcher does the rest.
+You do **not** need to install anything except one of those two. The launcher does the rest, and one
+command — starting the launcher — takes a fresh copy all the way to a running window.
 
 ### Getting Python
 
@@ -30,6 +32,15 @@ You do **not** need to install anything except Python. The launcher does the res
 **Not the newest Python.** PyTorch, which the detector uses, has no downloads ready for a brand
 new Python version for a few months after it appears, so "the latest" is usually the version where
 the install fails. 3.12 is the safe answer.
+
+### Or skip Python entirely, with uv
+
+If you already have — or would rather install — **[uv](https://docs.astral.sh/uv/)**, you do not need
+to install Python at all. When the launcher finds no suitable system Python, it uses uv to download a
+private Python 3.12 into uv's own cache and builds the app's environment from that. Nothing goes onto
+the system and no administrator rights are needed. uv installs from its own site with a single
+command (see its page), and on macOS it is also in Homebrew (`brew install uv`); on many Linux setups
+and on Nix it is a package too. This is the shortest path on a machine that has uv but no 3.11–3.13.
 
 ---
 
