@@ -190,6 +190,23 @@ def is_stale(image_path):
     return regions.stat().st_mtime > counts.stat().st_mtime
 
 
+# The columns build_table produces, in order. Named so that a folder with no sections yet -- a
+# fresh install before "Choose folder", or a folder with nothing counted -- still yields a table
+# with the right shape instead of one with no columns at all. Every reader below and in app.py
+# indexes these by name (table["density_per_mm2"], table["stale"], table["stem"]), and on a
+# column-less DataFrame each of those is a KeyError, which is a crash on the very first launch.
+TABLE_COLUMNS = [
+    "stem",
+    "bird",
+    "region",
+    "status",
+    "cells",
+    "area_mm2",
+    "density_per_mm2",
+    "stale",
+]
+
+
 def build_table(sections=None):
     """One row per section and region: count, area, density, and whether it is stale."""
     sections = sections if sections is not None else find_sections()
@@ -223,7 +240,7 @@ def build_table(sections=None):
                 }
             )
 
-    return pd.DataFrame(rows)
+    return pd.DataFrame(rows, columns=TABLE_COLUMNS)
 
 
 def summarise_by_region(table):

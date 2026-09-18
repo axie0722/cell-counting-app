@@ -47,17 +47,39 @@ if not defined FOUND (
     python -c "import sys; raise SystemExit(0 if (3, 11) <= sys.version_info < (3, 14) else 1)" >nul 2>&1 && set "FOUND=python"
 )
 
-if not defined FOUND (
-    echo.
-    echo This computer has no Python 3.11, 3.12 or 3.13, which the app needs.
-    echo.
-    echo Install one from https://www.python.org/downloads/ -- any 3.12.x will do -- and TICK
-    echo "Add python.exe to PATH" on the first page of the installer. Then run this again.
-    echo.
-    echo Nothing else has to be installed by hand; this file does the rest.
-    goto failed
-)
+rem --- no system Python? fall back to uv, the same as count-cells.sh does -------------------------
+rem uv, if it is on this machine, downloads a private Python 3.12 into its own cache and builds .venv
+rem from it: nothing onto the system, no admin. That is what lets a machine with uv but no suitable
+rem Python get all the way to a running app from one double-click. Written flat with labels, not a
+rem parenthesised block, because -- as the install step below also notes -- cmd.exe reads errorlevel
+rem inside such a block as it stood before the block began, which would be the wrong answer here.
+if defined FOUND goto have_python
 
+where uv >nul 2>&1
+if errorlevel 1 goto no_python
+
+echo Setting up the app's own Python environment. This happens once.
+echo   no system Python 3.11-3.13 found -- using uv to fetch a private one
+uv venv --python 3.12 "%VENV%"
+if errorlevel 1 goto uv_venv_failed
+goto check_packages
+
+:uv_venv_failed
+echo.
+echo uv is installed but could not build the environment in %VENV%. The message above says why.
+echo If that folder already exists and is broken, delete it and run this again.
+goto failed
+
+:no_python
+echo.
+echo This computer has no Python 3.11, 3.12 or 3.13, and no uv to fetch one with. Install EITHER
+echo one and run this again -- either is enough, and this file does the rest:
+echo.
+echo   Python:  https://www.python.org/downloads/  ^(any 3.12.x^) -- TICK "Add python.exe to PATH".
+echo   uv:      https://docs.astral.sh/uv/  -- it fetches its own Python and needs no admin.
+goto failed
+
+:have_python
 echo Setting up the app's own Python environment. This happens once.
 echo   using %FOUND%
 
