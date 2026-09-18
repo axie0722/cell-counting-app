@@ -838,7 +838,7 @@ def resolve_regions(image_path, shape, tissue=None):
     if not drawn:
         raise FileNotFoundError(
             f"No regions drawn for {Path(image_path).name}.\n"
-            f"Run: python draw_regions.py {Path(image_path).name!r}"
+            f"Run: python regions/draw_regions.py {Path(image_path).name!r}"
         )
 
     regions = {}

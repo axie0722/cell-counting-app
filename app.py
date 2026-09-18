@@ -124,6 +124,19 @@ import sys
 import time
 from pathlib import Path
 
+# BEFORE ANY OF THE APP'S OWN IMPORTS, and that is not a style choice. The app's modules live in
+# app/ regions/ review/ training/ counting/, and Python cannot import one until those folders are on
+# sys.path -- so `import app_awake` twenty lines below would fail if this ran after it. It is also
+# what gives the count and the drawing window their import path, since they are separate processes
+# that inherit PYTHONPATH from this one. app_path.py explains the whole arrangement.
+#
+# `app_path` itself imports because it sits beside this file, and the folder of the script being run
+# is always the first thing on sys.path. That is the one import that needs no setup, which is why
+# the setup lives there.
+import app_path
+
+app_path.setup()
+
 import pandas as pd
 from qtpy.QtCore import QSize, Qt, QTimer
 from qtpy.QtGui import QColor, QFont, QFontMetrics
