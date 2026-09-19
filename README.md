@@ -1,6 +1,6 @@
 # Cell counting
 
-Counts PS6-labelled cells in NCM and CMM on zebra finch brain sections, and reports a density for
+Counts PS6 cells in the NCM and CMM on zebra finch brain sections, and reports a density for
 each region. You outline the two regions on a section — the app proposes the outlines and you correct
 them — and it does the counting.
 
@@ -54,7 +54,7 @@ section 5 of INSTALL.md.
 
 ## What is in here
 
-The program and the trained model. **No images, no counts, no outlines, no research data.**
+The program and the trained model. 
 
 | | |
 | --- | --- |
@@ -66,15 +66,7 @@ The program and the trained model. **No images, no counts, no outlines, no resea
 | `ps6.py`, `app_path.py` | shared code, and the file that lets the folders above import each other |
 | `ps6_cnn_backbone.pt` | the detector (see the licence above) |
 
-It was one flat folder of 67 files until 2026-09-17. If you have an older copy, it still works —
-nothing about how you use it changed.
 
 **Do not move files between those folders.** Everything imports by plain name (`import ps6`), which
 works because `app_path.py` puts each folder on Python's import path when the app starts; a file in
 the wrong folder is still found, but a file in a folder that is not on that list is not.
-
-These files are generated, not edited here: the app is developed in a larger research folder, and
-`package_app.py` there computes which files it actually needs by following the imports out of
-`app.py`, then copies those and the model into this repository, keeping the same layout. Fixes belong
-upstream in that folder; a change made here is lost at the next rebuild. `README.md`, `.gitignore` and
-`LICENSE` are the exception — the rebuild leaves those alone.
